@@ -1,0 +1,24 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm/components/cam/src/dynamics/se/dycore/cube_mod.F90	2018-07-17 16:56:20.311327784 -0600
++++ /glade/u/home/zarzycki/work/ZTEST.QPC6.ne30/SourceMods/src.cam/cube_mod.F90	2018-07-21 11:22:21.368564843 -0600
+@@ -824,7 +824,7 @@
+   subroutine coreolis_init_atomic(elem)
+     use element_mod,    only: element_t
+     use dimensions_mod, only: np
+-    use physconst,      only: omega
++    use physconst,      only: omega, sday
+ 
+     type (element_t) :: elem
+ 
+@@ -842,7 +842,11 @@
+                 elem%fcor(i,j)= 2*omega* &
+                      (-cos(lon)*cos(lat)*sin(rangle) + sin(lat)*cos(rangle))
+              else
+-                elem%fcor(i,j) = 2.0_r8*omega*SIN(elem%spherep(i,j)%lat)
++                !++CMZ
++                !elem%fcor(i,j) = 2.0_r8*omega*SIN(elem%spherep(i,j)%lat)
++                ! KAR !!! Modified to constant Coriolis Force for RCE World
++                elem%fcor(i,j) = 2.0D0*2.0D0*PI/sday*SIN(15.0D0*PI/180.0D0)
++                !--CMZ
+              endif
+        end do
+     end do

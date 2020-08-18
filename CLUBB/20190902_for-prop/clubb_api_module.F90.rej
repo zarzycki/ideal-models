@@ -1,0 +1,13 @@
+--- clubb_api_module.F90	2018-07-17 16:56:14.318320724 -0600
++++ clubb_api_module.F90	2018-08-15 12:35:34.927230000 -0600
+@@ -708,7 +712,9 @@
+       rcm, wprcp, cloud_frac, ice_supersat_frac, &            ! intent(out)
+       rcm_in_layer, cloud_cover, &                            ! intent(out)
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-               khzm, khzt, &                                           ! intent(out)
++! ++ CMZ
++               khzm, khzt, l_scale_CMZ, &                                           ! intent(out)
++!               khzm, khzt, &                                           ! intent(out)
+ #endif
+ #ifdef CLUBB_CAM
+                qclvar, thlprcp_out, &                                               ! intent(out)

@@ -1,0 +1,15 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm/components/cam/src/utils/orbit.F90	2018-07-17 16:56:21.817061286 -0600
++++ /glade/u/home/zarzycki/work/ZTEST.QPC6.ne30/SourceMods/src.cam/orbit.F90	2018-07-20 13:51:03.186465000 -0600
+@@ -49,7 +49,11 @@
+ ! Compute local cosine solar zenith angle,
+ !
+    do i=1,ncol
+-      coszrs(i) = shr_orb_cosz( calday, clat(i), clon(i), delta, dt_avg )
++      !++ CMZ per KAR
++      !coszrs(i) = shr_orb_cosz( calday, clat(i), clon(i), delta, dt_avg )
++      !coszrs(i) = shr_orb_cosz( calday, 0._r8, 0._r8, delta, 0._r8 )
++      coszrs(i) = cos(42.05_r8*3.14159_r8/180._r8) 
++      !++ CMZ per KAR
+    end do
+ 
+ end subroutine zenith

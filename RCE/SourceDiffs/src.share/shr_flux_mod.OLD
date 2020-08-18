@@ -1,0 +1,14 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm/cime/src/share/util//shr_flux_mod.F90	2018-07-17 16:55:25.942385309 -0600
++++ /glade/u/home/zarzycki/work/ZTEST.QPC6.ne30/SourceMods/src.share/shr_flux_mod.F90	2018-07-21 11:39:41.086866165 -0600
+@@ -197,7 +197,10 @@
+ ! !EOP
+ 
+    !--- local constants --------------------------------
+-   real(R8),parameter :: umin  =  0.5_R8 ! minimum wind speed       (m/s)
++!++CMZ
++   !   real(R8),parameter :: umin  =  0.5_R8 ! minimum wind speed       (m/s)
++   real(R8),parameter :: umin  =  1.0_R8 ! minimum wind speed       (m/s)
++!--CMZ
+    real(R8),parameter :: zref  = 10.0_R8 ! reference height           (m)
+    real(R8),parameter :: ztref =  2.0_R8 ! reference height for air T (m)
+ 

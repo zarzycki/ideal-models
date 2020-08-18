@@ -1,0 +1,35 @@
+--- /storage/home/cmz5202/cesm-clubb/components/cam/src/physics/clubb//clubb_api_module.F90	2019-07-31 17:25:23.386682193 -0400
++++ /storage/home/cmz5202/TC_PBL/RCE.QPC6.ne0np4tcfplane.ne15x8.exp001.003/SourceMods/src.cam/clubb_api_module.F90	2019-09-06 16:53:07.576270036 -0400
+@@ -546,7 +546,9 @@
+                do_liquid_only_in_clubb, &                   ! intent(in)
+ #endif
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-    khzm, khzt, &                                           ! intent(out)
++! ++CMZ
++!    khzm, khzt, &                                           ! intent(out)
++    khzm, khzt, l_scale_CMZ, &                                           ! intent(out)
+ #endif
+ #ifdef CLUBB_CAM
+     qclvar, thlprcp_out, &                                  ! intent(out)
+@@ -706,6 +708,8 @@
+ 
+ #if defined(CLUBB_CAM) || defined(GFDL)
+     real( kind = core_rknd ), intent(out), dimension(gr%nz) :: &
++! ++CMZ
++      l_scale_CMZ, &       ! length scale on mom levels
+       khzt, &       ! eddy diffusivity on thermo levels
+       khzm          ! eddy diffusivity on momentum levels
+ #endif
+@@ -760,7 +764,11 @@
+                do_liquid_only_in_clubb, &                     ! intent(in)
+ #endif
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-               khzm, khzt, &                                  ! intent(out)
++!++ CMZ
++     khzm, khzt, l_scale_CMZ, &                                           ! intent(out)
++!     khzm, khzt, &                                           ! intent(out)
++!--CMZ
++
+ #endif
+ #ifdef CLUBB_CAM
+                qclvar, thlprcp_out, &                         ! intent(out)

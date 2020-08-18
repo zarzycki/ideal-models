@@ -1,0 +1,33 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm//components/cam/src/physics/clubb//clubb_api_module.F90	2018-07-17 16:56:14.318320724 -0600
++++ /glade/u/home/zarzycki/work/RCE.QPC6.ne0np4tcfplane.ne15x8/SourceMods/src.cam/clubb_api_module.F90	2018-08-15 12:35:34.927230000 -0600
+@@ -503,7 +503,9 @@
+     rcm, wprcp, cloud_frac, ice_supersat_frac, &            ! intent(out)
+     rcm_in_layer, cloud_cover, &                            ! intent(out)
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-    khzm, khzt, &                                           ! intent(out)
++! ++CMZ
++!    khzm, khzt, &                                           ! intent(out)
++    khzm, khzt, l_scale_CMZ, &                                           ! intent(out)
+ #endif
+ #ifdef CLUBB_CAM
+     qclvar, thlprcp_out, &                                  ! intent(out)
+@@ -652,6 +654,8 @@
+ 
+ #if defined(CLUBB_CAM) || defined(GFDL)
+     real( kind = core_rknd ), intent(out), dimension(gr%nz) :: &
++! ++CMZ
++      l_scale_CMZ, &       ! length scale on mom levels
+       khzt, &       ! eddy diffusivity on thermo levels
+       khzm          ! eddy diffusivity on momentum levels
+ #endif
+@@ -704,7 +708,9 @@
+       rcm, wprcp, cloud_frac, ice_supersat_frac, &            ! intent(out)
+       rcm_in_layer, cloud_cover, &                            ! intent(out)
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-               khzm, khzt, &                                           ! intent(out)
++! ++ CMZ
++               khzm, khzt, l_scale_CMZ, &                                           ! intent(out)
++!               khzm, khzt, &                                           ! intent(out)
+ #endif
+ #ifdef CLUBB_CAM
+                qclvar, thlprcp_out, &                                               ! intent(out)

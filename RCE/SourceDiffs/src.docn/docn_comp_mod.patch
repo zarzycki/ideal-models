@@ -1,0 +1,46 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm/cime/src/components/data_comps/docn//docn_comp_mod.F90	2018-07-17 16:55:24.722371122 -0600
++++ /glade/u/home/zarzycki/work/ZTEST.QPC6.ne30/SourceMods/src.docn/docn_comp_mod.F90	2018-07-21 11:26:05.116179886 -0600
+@@ -820,23 +820,32 @@
+        end do
+     end if
+ 
++!++ CMZ
++! comment out old option #10, put globally constant SST in instead...
+     ! Control-15N
+ 
++!     if (sst_option == 10) then
++!        do i = 1, lsize
++!           if (abs(rlat(i)) > maxlat) then
++!              sst(i) = t0_min
++!           else if(rlat(i) > shift10) then
++!              tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat-shift10))
++!              tmp = 1._r8 - tmp*tmp
++!              sst(i) = tmp*(t0_max - t0_min) + t0_min
++!           else
++!              tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat+shift10))
++!              tmp = 1._r8 - tmp*tmp
++!              sst(i) = tmp*(t0_max - t0_min) + t0_min
++!           end if
++!        end do
++!     end if
++    
+     if (sst_option == 10) then
+        do i = 1, lsize
+-          if (abs(rlat(i)) > maxlat) then
+-             sst(i) = t0_min
+-          else if(rlat(i) > shift10) then
+-             tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat-shift10))
+-             tmp = 1._r8 - tmp*tmp
+-             sst(i) = tmp*(t0_max - t0_min) + t0_min
+-          else
+-             tmp = sin((rlat(i)-shift10)*pi*0.5_r8/(maxlat+shift10))
+-             tmp = 1._r8 - tmp*tmp
+-             sst(i) = tmp*(t0_max - t0_min) + t0_min
+-          end if
++             sst(i) = 300._r8-273.15_r8 !29._r8
+        end do
+     end if
++!-- CMZ
+ 
+   end subroutine prescribed_sst
+ 

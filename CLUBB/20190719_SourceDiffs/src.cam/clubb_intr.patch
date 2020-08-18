@@ -1,0 +1,118 @@
+--- /storage/home/cmz5202/cesm-clubb/components/cam/src/physics/cam//clubb_intr.F90	2019-07-31 17:25:07.043796183 -0400
++++ /storage/home/cmz5202/TC_PBL/RCE.QPC6.ne0np4tcfplane.ne15x8.exp001.003/SourceMods/src.cam/clubb_intr.F90	2019-09-06 16:53:08.088818477 -0400
+@@ -189,6 +189,9 @@
+     dp_frac_idx, &      ! deep convection cloud fraction
+     sh_frac_idx, &      ! shallow convection cloud fraction
+     kvh_idx, &		! CLUBB eddy diffusivity on thermo levels
++!++CMZ
++    lsca_idx, &          ! CLUBB lscale on mom levels
++!--CMZ
+     pblh_idx, &         ! PBL pbuf
+     icwmrdp_idx, &	! In cloud mixing ratio for deep convection
+     tke_idx, &          ! turbulent kinetic energy
+@@ -305,6 +308,9 @@
+     call pbuf_add_field('pblh',       'global', dtype_r8, (/pcols/),                    pblh_idx)
+     call pbuf_add_field('tke',        'global', dtype_r8, (/pcols, pverp/),             tke_idx)
+     call pbuf_add_field('kvh',        'global', dtype_r8, (/pcols, pverp/),             kvh_idx)
++!++CMZ
++    call pbuf_add_field('lsca',       'global', dtype_r8, (/pcols, pverp/),             lsca_idx)
++!--CMZ
+     call pbuf_add_field('tpert',      'global', dtype_r8, (/pcols/),                    tpert_idx)
+     call pbuf_add_field('AST',        'global', dtype_r8, (/pcols,pver,dyn_time_lvls/),    ast_idx)
+     call pbuf_add_field('AIST',       'global', dtype_r8, (/pcols,pver,dyn_time_lvls/),    aist_idx)
+@@ -1055,7 +1061,10 @@
+     call addfld ('DPDLFT',           (/ 'lev' /),  'A', 'K/s',      'T-tendency due to deep convective detrainment') 
+     call addfld ('RELVAR',           (/ 'lev' /),  'A', '-',        'Relative cloud water variance')
+     call addfld ('CLUBB_GRID_SIZE',  horiz_only,   'A', 'm',        'Horizontal grid box size seen by CLUBB')
+-
++!++CMZ
++    call addfld ('TKE_CLUBB',        (/ 'ilev' /), 'A', 'm2/s',     'Turbulent kinetic energy on interface levels')
++    call addfld ('LSCALE_CLUBB',     (/ 'ilev' /), 'A', 'm',        'Turbulent length scale on interface levels')
++!--CMZ
+ 
+     call addfld ('ZMDLFI',           (/ 'lev' /),  'A', 'kg/kg/s',  'Detrained ice water from ZM convection')
+     call addfld ('CONCLD',           (/ 'lev' /),  'A', 'fraction', 'Convective cloud cover')
+@@ -1444,6 +1453,9 @@
+    real(r8) :: rtphmp_zt(pverp+1-top_lev,hydromet_dim)
+    real(r8) :: thlphmp_zt (pverp+1-top_lev,hydromet_dim)
+    real(r8) :: bflx22                           ! Variable for buoyancy flux for pbl            [K m/s]
++!++CMZ
++   real(r8) :: lscale_out(pverp+1-top_lev)        ! length scale on momentum grids            [m^2/s]
++!--CMZ
+    real(r8) :: khzm_out(pverp+1-top_lev)        ! Eddy diffusivity of heat/moisture on momentum (i.e. interface) levels  [m^2/s]
+    real(r8) :: khzt_out(pverp+1-top_lev)        ! eddy diffusivity on thermo grids              [m^2/s]
+    real(r8) :: qclvar_out(pverp+1-top_lev)      ! cloud water variance                          [kg^2/kg^2]
+@@ -1563,6 +1575,9 @@
+    real(r8), pointer, dimension(:,:) :: deepcu   ! deep convection cloud fraction		[fraction]
+    real(r8), pointer, dimension(:,:) :: shalcu   ! shallow convection cloud fraction 		[fraction]    
+    real(r8), pointer, dimension(:,:) :: khzm     ! CLUBB's eddy diffusivity of heat/moisture on momentum (i.e. interface) levels          [m^2/s]
++!++CMZ
++   real(r8), pointer, dimension(:,:) :: l_scale_CMZ     ! length scale on mom levels         [m]
++!--CMZ   
+    real(r8), pointer, dimension(:) :: pblh     ! planetary boundary layer height                [m]
+    real(r8), pointer, dimension(:,:) :: tke      ! turbulent kinetic energy                     [m^2/s^2]
+    real(r8), pointer, dimension(:,:) :: dp_icwmr ! deep convection in cloud mixing ratio        [kg/kg]
+@@ -1731,6 +1746,9 @@
+    call pbuf_get_field(pbuf, dp_frac_idx, deepcu)
+    call pbuf_get_field(pbuf, sh_frac_idx, shalcu)
+    call pbuf_get_field(pbuf, kvh_idx,     khzm)
++!++CMZ
++   call pbuf_get_field(pbuf, lsca_idx,    l_scale_CMZ)
++!--CMZ
+    call pbuf_get_field(pbuf, pblh_idx,    pblh)
+    call pbuf_get_field(pbuf, icwmrdp_idx, dp_icwmr)
+    call pbuf_get_field(pbuf, cmfmc_sh_idx, cmfmc_sh)
+@@ -2198,6 +2216,9 @@
+          edsclr_in(k,:)      = 0._r8
+          khzm_out(k)         = 0._r8
+          khzt_out(k)         = 0._r8
++!++CMZ
++         lscale_out(k)       = 0._r8
++!--CMZ
+ 
+          !  higher order scalar stuff, put to zero
+          sclrm(k,:)          = 0._r8
+@@ -2299,7 +2320,10 @@
+             wpthvp_in, wp2thvp_in, rtpthvp_in, thlpthvp_in, &
+             sclrpthvp_inout, &
+             pdf_params, pdf_params_zm, &
+-            khzm_out, khzt_out, &
++!++CMZ
++!            khzm_out, khzt_out, &
++            khzm_out, khzt_out, lscale_out, &
++!--CMZ
+             qclvar_out, thlprcp_out, &
+             wprcp_out, ice_supersat_frac_out, &
+             rcm_in_layer_out, cloud_cover_out)
+@@ -2408,6 +2432,9 @@
+          zt_out(i,pverp-k+1)       = zt_g(k)
+          zi_out(i,pverp-k+1)       = zi_g(k)
+          khzm(i,pverp-k+1)         = khzm_out(k)
++!++CMZ
++         l_scale_CMZ(i,k)  = lscale_out(pverp-k+1)
++!--CMZ
+          qclvar(i,pverp-k+1)       = min(1._r8,qclvar_out(k))
+          wm_zt_out(i,pverp-k+1)    = wm_zt(k)
+ 
+@@ -2442,6 +2469,9 @@
+       zt_out(i,:top_lev-1) = 0._r8
+       zi_out(i,:top_lev-1) = 0._r8
+       khzm(i,:top_lev-1) = 0._r8
++!++CMZ
++      l_scale_CMZ(i,:top_lev-1) = 0._r8
++!--CMZ
+       qclvar(i,:top_lev-1) = 2._r8
+ 
+ 
+@@ -3133,6 +3163,11 @@
+    call outfld( 'ZMDLFI',           dlf_ice_out,           pcols, lchnk )
+    call outfld( 'CLUBB_GRID_SIZE',  grid_dx,                 pcols, lchnk )
+    call outfld( 'QSATFAC',          qsatfac,                 pcols, lchnk)
++!++CMZ
++!   call outfld( 'KVM_CLUBB',              khzm,                    pcols, lchnk )
++   call outfld( 'LSCALE_CLUBB',     l_scale_CMZ,            pcols, lchnk )
++   call outfld( 'TKE_CLUBB',        tke,                    pcols, lchnk )
++!--CMZ
+ 
+    !  Output CLUBB history here
+    if (l_stats) then 

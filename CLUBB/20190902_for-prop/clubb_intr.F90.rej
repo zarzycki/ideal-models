@@ -1,0 +1,46 @@
+--- clubb_intr.F90	2018-07-17 16:56:17.505499866 -0600
++++ clubb_intr.F90	2018-08-15 13:40:58.249338000 -0600
+@@ -158,6 +158,9 @@
+     dp_frac_idx, &      ! deep convection cloud fraction
+     sh_frac_idx, &      ! shallow convection cloud fraction
+     kvh_idx, &          ! Eddy diffusivity of heat/moisture on interface levels
++!++CMZ
++    lsca_idx, &          ! CLUBB lscale on mom levels
++!--CMZ
+     pblh_idx, &         ! PBL pbuf
+     icwmrdp_idx, &      ! In cloud mixing ratio for deep convection
+     tke_idx, &          ! turbulent kinetic energy
+@@ -1921,7 +1943,10 @@
+             wpsclrp, edsclr_in, err_code, &
+             rcm_out, wprcp_out, cloud_frac_out, ice_supersat_frac, &
+             rcm_in_layer_out, cloud_cover_out, &
+-            khzm_out, khzt_out, qclvar_out, thlprcp_out, &
++!++CMZ
++            !khzm_out, khzt_out, qclvar_out, thlprcp_out, &
++            khzm_out, khzt_out, lscale_out, qclvar_out, thlprcp_out, &
++!--CMZ
+             pdf_params)
+ 
+          if (do_rainturb) then
+@@ -2003,6 +2028,9 @@
+           rcm_in_layer(i,pverp-k+1) = rcm_in_layer_out(k)
+           zt_out(i,pverp-k+1)       = zt_g(k)
+           zi_out(i,pverp-k+1)       = zi_g(k)
++!++CMZ
++          l_scale_CMZ(i,pverp-k+1) = lscale_out(k)
++!--CMZ
+           khzm(i,pverp-k+1) = khzm_out(k)
+           qclvar(i,pverp-k+1)       = min(1._r8,qclvar_out(k))
+ 
+@@ -2663,6 +2694,11 @@
+    call outfld( 'QT',               qt_output,               pcols, lchnk )
+    call outfld( 'SL',               sl_output,               pcols, lchnk )
+    call outfld( 'CONCLD',           concld,                  pcols, lchnk )
++!++CMZ
++!   call outfld( 'KVM_CLUBB',              khzm,                    pcols, lchnk )
++   call outfld( 'LSCALE_CLUBB',              l_scale_CMZ,                    pcols, lchnk )
++   call outfld( 'TKE_CLUBB',              tke,                    pcols, lchnk )
++!--CMZ
+    call outfld( 'CLUBB_GRID_SIZE',  grid_dx,                 pcols, lchnk )
+    call outfld( 'QSATFAC',          qsatfac,                 pcols, lchnk)
+ 

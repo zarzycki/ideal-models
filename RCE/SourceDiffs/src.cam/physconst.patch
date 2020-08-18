@@ -1,0 +1,15 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm/components/cam/src/utils/physconst.F90	2018-07-17 16:56:21.798854463 -0600
++++ /glade/u/home/zarzycki/work/ZTEST.QPC6.ne30/SourceMods/src.cam/physconst.F90	2018-07-21 11:23:20.863692000 -0600
+@@ -176,7 +176,11 @@
+       end if
+       rga         = 1._r8/gravit
+       ra          = 1._r8/rearth
+-      omega       = 2.0_R8*pi/sday
++      !++CMZ per KAR
++      ! Turn rotation off
++      !omega       = 2.0_R8*pi/sday
++      omega       = 0._R8
++      !--CMZ
+       cpvir       = cpwv/cpair - 1._r8
+       epsilo      = mwh2o/mwdry
+ 

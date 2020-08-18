@@ -1,0 +1,226 @@
+--- /glade/u/home/zarzycki/work/rel-cesm2/mpas-cesm//components/cam/src/physics/clubb//advance_clubb_core_module.F90	2018-07-17 16:56:13.079649755 -0600
++++ /glade/u/home/zarzycki/work/RCE.QPC6.ne0np4tcfplane.ne15x8/SourceMods/src.cam/advance_clubb_core_module.F90	2018-08-20 11:37:03.689526996 -0600
+@@ -143,7 +143,9 @@
+                rcm, wprcp, cloud_frac, ice_supersat_frac, &         ! intent(out)
+                rcm_in_layer, cloud_cover, &                         ! intent(out)
+ #if defined(CLUBB_CAM) || defined(GFDL)
+-               khzm, khzt, &                                        ! intent(out)
++! ++CMZ
++               khzm, khzt, l_scale_CMZ, &                            ! intent(out)
++!               khzm, khzt, &                                        ! intent(out)
+ #endif
+ #ifdef CLUBB_CAM
+                qclvar, thlprcp_out, &                               ! intent(out)
+@@ -613,6 +615,8 @@
+ 
+ #if defined(CLUBB_CAM) || defined(GFDL)
+     real( kind = core_rknd ), intent(out), dimension(gr%nz) :: &
++! ++CMZ added L_scale
++      l_scale_CMZ, &       ! length scale on momentum levels
+       khzt, &       ! eddy diffusivity on thermo levels
+       khzm          ! eddy diffusivity on momentum levels
+ #endif
+@@ -1749,6 +1753,157 @@
+         end if
+       end if
+ 
++! ++CMZ
++! Modify length scale based on Kepert
++  !Lscale=100.0_core_rknd
++  !Lscale=Lscale*3.0_core_rknd
++  ! blackadar (1962) with values from Kepert
++  !Lscale = 1.0_core_rknd / (1.0_core_rknd/(gr%zm*0.4_core_rknd) + 1.0_core_rknd/(200.0_core_rknd))
++
++  ! 6/22/17
++! change Km profile -- surface is level 1, top is gr%nz
++! PRO01
++
++!   Lscale=200.0_core_rknd
++!   Lscale(1) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(1)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(2) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(2)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(3) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(3)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(4) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(4)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(5) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(5)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(6) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(4)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++!   Lscale(7) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(3)*0.4_core_rknd) + 1.0_core_rknd/(1500.0_core_rknd))
++
++  !PRO2
++!   Lscale=300.0_core_rknd
++!   Lscale(1) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(1)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(2) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(2)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(3) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(3)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(4) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(4)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(5) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(5)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(6) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(4)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++!   Lscale(7) = 1.0_core_rknd / (1.0_core_rknd/(gr%zm(3)*0.4_core_rknd) + 1.0_core_rknd/(7500.0_core_rknd))
++
++  !PRO3
++!   Lscale(1) = 500.0_core_rknd
++!   Lscale(2) = 800.0_core_rknd
++!   Lscale(3) = 700.0_core_rknd
++!   Lscale(4) = 500.0_core_rknd
++!   Lscale(5) = 400.0_core_rknd
++!   Lscale(6) = 300.0_core_rknd
++!   Lscale(7) = 200.0_core_rknd
++!   Lscale(8) = 200.0_core_rknd
++!   Lscale(9) = 200.0_core_rknd
++!   Lscale(10) = 200.0_core_rknd
++! --CMZ
++
++  !PRO4
++!   Lscale(1) = 100.0_core_rknd
++!   Lscale(2) = 1000.0_core_rknd
++!   Lscale(3) = 900.0_core_rknd
++!   Lscale(4) = 600.0_core_rknd
++!   Lscale(5) = 500.0_core_rknd
++!   Lscale(6) = 400.0_core_rknd
++!   Lscale(7) = 300.0_core_rknd
++!   Lscale(8) = 300.0_core_rknd
++!   Lscale(9) = 300.0_core_rknd
++!   Lscale(10) = 300.0_core_rknd
++!   Lscale(11) = 300.0_core_rknd
++!   Lscale(12) = 300.0_core_rknd
++
++  !PRO5
++!  Lscale(1) = 30.0_core_rknd
++!   Lscale(2) = 100.0_core_rknd
++!   Lscale(3) = 800.0_core_rknd
++!   Lscale(4) = 200.0_core_rknd
++!   Lscale(5) = 200.0_core_rknd
++!   Lscale(6) = 200.0_core_rknd
++!   Lscale(7) = 200.0_core_rknd
++!   Lscale(8) = 200.0_core_rknd
++!   Lscale(9) = 200.0_core_rknd
++!   Lscale(10) = 200.0_core_rknd
++!   Lscale(11) = 200.0_core_rknd
++!   Lscale(12) = 200.0_core_rknd
++
++
++  !PRO6
++!   Lscale(1) = 10.0_core_rknd
++!   Lscale(2) = 800.0_core_rknd
++!   Lscale(3) = 600.0_core_rknd
++!   Lscale(4) = 300.0_core_rknd
++!   Lscale(5) = 200.0_core_rknd
++!   Lscale(6) = 100.0_core_rknd
++!   Lscale(7) = 75.0_core_rknd
++!   Lscale(8) = 50.0_core_rknd
++!   Lscale(9) = 40.0_core_rknd
++!   Lscale(10) = 40.0_core_rknd
++!   Lscale(11) = 40.0_core_rknd
++!   Lscale(12) = 40.0_core_rknd
++
++  !PRO7
++!   Lscale=100.0_core_rknd
++!   Lscale(1) = 10.0_core_rknd
++!   Lscale(2) = 50.0_core_rknd
++!   Lscale(3) = 800.0_core_rknd
++!   Lscale(4) = 600.0_core_rknd
++!   Lscale(5) = 400.0_core_rknd
++!   Lscale(6) = 200.0_core_rknd
++!   Lscale(7) = 100.0_core_rknd
++!   Lscale(8) = 100.0_core_rknd
++!   Lscale(9) = 100.0_core_rknd
++!   Lscale(10) = 100.0_core_rknd
++!   Lscale(11) = 100.0_core_rknd
++!   Lscale(12) = 100.0_core_rknd
++
++  !PRO7 - L120
++!   Lscale=100.0_core_rknd
++!   Lscale(1) = 10.0_core_rknd
++!   Lscale(2) = 10.0_core_rknd
++!   Lscale(3) = 10.0_core_rknd
++!   Lscale(4) = 10.0_core_rknd
++!   Lscale(5) = 50.0_core_rknd
++!   Lscale(6) = 50.0_core_rknd
++!   Lscale(7) = 50.0_core_rknd
++!   Lscale(8) = 50.0_core_rknd
++!   Lscale(9) = 800.0_core_rknd
++!   Lscale(10) = 800.0_core_rknd
++!   Lscale(11) = 800.0_core_rknd
++!   Lscale(12) = 800.0_core_rknd
++!   Lscale(13) = 600.0_core_rknd
++!   Lscale(14) = 600.0_core_rknd
++!   Lscale(15) = 600.0_core_rknd
++!   Lscale(16) = 600.0_core_rknd
++!   Lscale(17) = 400.0_core_rknd
++!   Lscale(18) = 400.0_core_rknd
++!   Lscale(19) = 400.0_core_rknd
++!   Lscale(20) = 400.0_core_rknd
++!   Lscale(21) = 200.0_core_rknd
++!   Lscale(22) = 200.0_core_rknd
++!   Lscale(23) = 200.0_core_rknd
++!   Lscale(24) = 200.0_core_rknd
++  !Lscale(7) = 100.0_core_rknd
++  !Lscale(8) = 100.0_core_rknd
++  !Lscale(9) = 100.0_core_rknd
++  !Lscale(10) = 100.0_core_rknd
++  !Lscale(11) = 100.0_core_rknd
++  !Lscale(12) = 100.0_core_rknd
++
++  !PRO8
++  !Lscale=75.0_core_rknd
++!   Lscale(1) = 5.0_core_rknd
++!   Lscale(2) = 30.0_core_rknd
++!   Lscale(3) = 500.0_core_rknd
++!   Lscale(4) = 325.0_core_rknd
++!   Lscale(5) = 200.0_core_rknd
++!   Lscale(6) = 100.0_core_rknd
++!   Lscale(7) = 75.0_core_rknd
++!   Lscale(8) = 75.0_core_rknd
++!   Lscale(9) = 75.0_core_rknd
++!   Lscale(10) = 75.0_core_rknd
++!   Lscale(11) = 75.0_core_rknd
++!   Lscale(12) = 75.0_core_rknd
++
++!--CMZ
++
+       !----------------------------------------------------------------
+       ! Dissipation time
+       !----------------------------------------------------------------
+@@ -1792,6 +1947,8 @@
+ #if defined(CLUBB_CAM) || defined(GFDL)
+       khzt(:) = Kh_zt(:)
+       khzm(:) = Kh_zm(:)
++! ++CMZ
++      l_scale_CMZ(:) = zt2zm( Lscale )
+ #endif
+ 
+ #ifdef CLUBB_CAM
+@@ -2062,7 +2219,36 @@
+       !----------------------------------------------------------------i
+ 
+       Km_zm = Kh_zm * c_K10   ! Coefficient for momentum
++!++CMZ hardcode c_K10h
+       Kmh_zm = Kh_zm * c_K10h ! Coefficient for thermo
++!      Kmh_zm = Kh_zm * 4.0_core_rknd ! Coefficient for thermo
++
++!++CMZ
++! change Km profile -- surface is level 1, top is gr%nz
++! PRO01
++!        Km_zm(1) = Kh_zm(1) * 0.04_core_rknd / c_K10
++!        Km_zm(2) = Kh_zm(2) * 0.07_core_rknd / c_K10
++!        Km_zm(3) = Kh_zm(3) * 0.1_core_rknd / c_K10
++!        Km_zm(4) = Kh_zm(4) * 0.2_core_rknd / c_K10
++!        Km_zm(5) = Kh_zm(5) * 0.3_core_rknd / c_K10
++
++! PRO02
++!        Km_zm(1) = Kh_zm(1) * 4.0_core_rknd / c_K10
++!        Km_zm(2) = Kh_zm(2) * 2.0_core_rknd / c_K10
++!        Km_zm(3) = Kh_zm(3) * 1.0_core_rknd / c_K10
++!        Km_zm(4) = Kh_zm(4) * 0.5_core_rknd / c_K10
++!        Km_zm(5) = Kh_zm(5) * 0.3_core_rknd / c_K10
++
++! PRO03
++!       Km_zm(1) = Kh_zm(1) * 0.3_core_rknd / c_K10
++!       Km_zm(2) = Kh_zm(2) * 1.0_core_rknd / c_K10
++!       Km_zm(3) = Kh_zm(3) * 6.0_core_rknd / c_K10
++!       Km_zm(4) = Kh_zm(4) * 1.0_core_rknd / c_K10
++!       Km_zm(5) = Kh_zm(5) * 0.5_core_rknd / c_K10
++!--CMZ
++
++
++
+ 
+       if ( l_do_expldiff_rtm_thlm ) then
+         edsclrm(:,edsclr_dim-1)=thlm(:)

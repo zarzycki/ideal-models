@@ -1,0 +1,39 @@
+--- advance_clubb_core_module.F90	2018-07-17 16:56:13.079649755 -0600
++++ advance_clubb_core_module.F90	2018-08-20 11:37:03.689526996 -0600
+@@ -2219,7 +2376,36 @@
+       !----------------------------------------------------------------i
+ 
+       Km_zm = Kh_zm * c_K10   ! Coefficient for momentum
++!++CMZ hardcode c_K10h
+       Kmh_zm = Kh_zm * c_K10h ! Coefficient for thermo
++!      Kmh_zm = Kh_zm * 4.0_core_rknd ! Coefficient for thermo
++
++!++CMZ
++! change Km profile -- surface is level 1, top is gr%nz
++! PRO01
++!        Km_zm(1) = Kh_zm(1) * 0.04_core_rknd / c_K10
++!        Km_zm(2) = Kh_zm(2) * 0.07_core_rknd / c_K10
++!        Km_zm(3) = Kh_zm(3) * 0.1_core_rknd / c_K10
++!        Km_zm(4) = Kh_zm(4) * 0.2_core_rknd / c_K10
++!        Km_zm(5) = Kh_zm(5) * 0.3_core_rknd / c_K10
++
++! PRO02
++!        Km_zm(1) = Kh_zm(1) * 4.0_core_rknd / c_K10
++!        Km_zm(2) = Kh_zm(2) * 2.0_core_rknd / c_K10
++!        Km_zm(3) = Kh_zm(3) * 1.0_core_rknd / c_K10
++!        Km_zm(4) = Kh_zm(4) * 0.5_core_rknd / c_K10
++!        Km_zm(5) = Kh_zm(5) * 0.3_core_rknd / c_K10
++
++! PRO03
++!       Km_zm(1) = Kh_zm(1) * 0.3_core_rknd / c_K10
++!       Km_zm(2) = Kh_zm(2) * 1.0_core_rknd / c_K10
++!       Km_zm(3) = Kh_zm(3) * 6.0_core_rknd / c_K10
++!       Km_zm(4) = Kh_zm(4) * 1.0_core_rknd / c_K10
++!       Km_zm(5) = Kh_zm(5) * 0.5_core_rknd / c_K10
++!--CMZ
++
++
++
+ 
+       if ( l_do_expldiff_rtm_thlm ) then
+         edsclrm(:,edsclr_dim-1)=thlm(:)
