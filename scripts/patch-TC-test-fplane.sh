@@ -59,7 +59,36 @@ if [[ $(hostname -s) = cheyenne* ]]; then
   RCEINPUTDATA=/glade/u/home/kareed/RCE_inputdata/
   CASEDIR=~/TC_PBL/
   MACHNAME="cheyenne"
+  EXTRASETUPFLAGS=""
+  EXTRASUBFLAGS=""
+  USENODEBUILD=true
+elif [[ $(hostname -s) = aci-* ]]; then
+  source /usr/share/lmod/lmod/init/bash
+  module purge
+  module use /gpfs/group/dml129/default/sw/modules
+  module load intel/16.0.3
+  module load impi/5.1.3
+  module load netcdf/4.3.3.1-intel-16.0.3
+  module load python/2.7.14-anaconda5.0.1
+  module load perl/5.24.1
+  module list
+  IDEALDIR=/storage/home/cmz5202/ideal-models/
+  NUMNODES=15
+  WALLTIME="03:58:00"
+  RUNQUEUE="batch"
+  PROJID="cmz5202_a_g_sc_default"
+  CESMROOT=/storage/home/cmz5202/cesm-dev/
+  GRIDSDIR=/storage/work/cmz5202/grids/
+  INICDIR=/storage/work/${LOGNAME}/inic/
+  CSMDATA=/gpfs/group/dml129/default/sw/cesm/cesm-inputdata/
+  RCEINPUTDATA=NULL
+  CASEDIR=~/TC_PBL/
+  MACHNAME="ACI"
+  EXTRASETUPFLAGS="--compiler intel"
+  EXTRASUBFLAGS='--batch-args "-N CESM"'
+  USENODEBUILD=false
 fi
+
 
 CASENAME=RCE.${PHYS}.ne0np4tcfplane.${RES}.${EXPID}.${ENS}
 
@@ -80,7 +109,7 @@ mkdir -p ${CASEDIR}
 rm -rf ${CASEDIR}/${CASENAME}
 
 cd ${CESMROOT}/cime/scripts
-./create_newcase --case ${CASEDIR}/${CASENAME} --res ne0TCFPLANE${RES}_ne0TCFPLANE${RES}_mt12 --compset ${PHYS} --mach ${MACHNAME} --run-unsupported
+./create_newcase --case ${CASEDIR}/${CASENAME} --res ne0TCFPLANE${RES}_ne0TCFPLANE${RES}_mt12 --compset ${PHYS} --mach ${MACHNAME} ${EXTRASETUPFLAGS} --run-unsupported
 
 cd ${CASEDIR}/${CASENAME}
 
@@ -134,9 +163,10 @@ fi
 ./xmlchange NTASKS=-${NUMNODES}
 ./xmlchange NTASKS_ESP=1
 ./xmlchange NTASKS_IAC=1
+
 ./xmlchange JOB_WALLCLOCK_TIME=${WALLTIME}
-./xmlchange JOB_QUEUE=${RUNQUEUE}
 ./xmlchange PROJECT=${PROJID}
+./xmlchange JOB_QUEUE=${RUNQUEUE}
 
 if [ ${PHYS} == 'QPC5' ] ; then
   echo "USING CAM5 PHYSICS"
@@ -180,7 +210,7 @@ se_mesh_file='${GRIDSDIR}/exodus/ne0np4tcfplane.${RES}.g'
 bnd_topo='${INICDIR}/ne0np4tcplane${RES}_INIC_L${NLEV}.${ENS}.nc'
 ncdata='${INICDIR}/ne0np4tcplane${RES}_INIC_L${NLEV}.${ENS}.nc'
 
-drydep_srf_file='${CSMDATA}/inputdata//atm/cam/chem/trop_mam/atmsrf_ne120np4_110920.nc'
+drydep_srf_file='${CSMDATA}/atm/cam/chem/trop_mam/atmsrf_ne120np4_110920.nc'
 se_nsplit=${SE_NSPLIT}
 se_rsplit=3
 se_hypervis_subcycle=4
@@ -237,9 +267,11 @@ echo "Done with config!"
 
 echo "Done with setup!"
 
-#exit
-
-cesm.build --skip-provenance-check
+if [ "${USENODEBUILD}" = true ] ; then
+  cesm.build --skip-provenance-check
+else
+  ./case.build --skip-provenance-check
+fi
 
 echo "Done with build!"
-./case.submit
+./case.submit --batch-args "-N TC.${EXPID}.${ENS}"
