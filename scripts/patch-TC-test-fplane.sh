@@ -29,7 +29,7 @@ function patch_code {
 DTIME=450.0
 RES="ne15x8"
 PHYS="QPC6"  # QPC5 or QPC6
-EXPID="exp293"
+EXPID="exp292"
 ENS="001"
 NLEV=56
 NDAYS=10
@@ -189,7 +189,7 @@ elif [ ${PHYS} == 'QPC6' ]; then
   # Change to Kevin's RCE use case
   ./xmlchange CAM_NML_USE_CASE="aquaplanet_rce_cam6"
    # Add CAM6 specific output vars
-  EXTRAVARS="'Lscale','em','Kh_zm','Kh_zt','invrs_tau_bkgnd','invrs_tau_sfc','invrs_tau_shear','bv_freq_sqd'"
+  EXTRAVARS="'Lscale','em','Kh_zm','invrs_tau_bkgnd','invrs_tau_sfc','invrs_tau_shear','bv_freq_sqd','Richardson_num','tau_zm'"
   DIAGOUT=","$EXTRAVARS
 else
   DIAGOUT=""
