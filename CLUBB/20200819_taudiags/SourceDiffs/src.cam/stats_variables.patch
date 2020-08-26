@@ -1,0 +1,24 @@
+--- /glade/u/home/zarzycki/work/cesm-dev//components/cam/src/physics/clubb//stats_variables.F90	2020-07-04 18:33:26.556274586 -0600
++++ /glade/u/home/zarzycki/TC_PBL/RCE.QPC6.ne0np4tcfplane.ne15x8.exp295.001/SourceMods/src.cam/stats_variables.F90	2020-08-19 11:44:54.649363388 -0600
+@@ -119,13 +119,19 @@
+ !$omp   isigma_sqd_w_zt, irho )
+ 
+   integer, public :: &
++!++CMZ
++     iinvrs_tau_bkgnd = 0,  &
++     iinvrs_tau_sfc   = 0,  &
++     iinvrs_tau_shear = 0,  &
++!--CMZ
+      itau_no_N2_zm = 0,     & 
+      itau_xp2_zm   = 0,     &
+      itau_wp2_zm   = 0,     &
+      itau_wp3_zm   = 0
+ !$omp threadprivate( itau_no_N2_zm,itau_wp2_zm, itau_xp2_zm, itau_wp3_zm )
+-
+-
++!++CMZ
++!$omp threadprivate( iinvrs_tau_bkgnd,iinvrs_tau_sfc, iinvrs_tau_shear)
++!--CMZ
+ 
+   integer, dimension(:), allocatable, public :: & 
+      ihm_1, &
