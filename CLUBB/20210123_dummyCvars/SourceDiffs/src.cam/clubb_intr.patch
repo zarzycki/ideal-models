@@ -1,0 +1,68 @@
+--- /glade/u/home/zarzycki/work/cesm2_2_0//components/cam/src/physics/cam//clubb_intr.F90	2020-10-19 15:40:07.276582055 -0600
++++ clubb_intr.F90	2021-01-23 13:08:21.336130650 -0700
+@@ -113,6 +113,10 @@
+   real(r8) :: clubb_c11 = unset_r8
+   real(r8) :: clubb_c11b = unset_r8
+   real(r8) :: clubb_c14 = unset_r8
++!++CMZ
++  real(r8) :: clubb_C10 = unset_r8
++  real(r8) :: clubb_C13 = unset_r8
++!--CMZ
+   real(r8) :: clubb_c_K9 = unset_r8
+   real(r8) :: clubb_nu9 = unset_r8
+   real(r8) :: clubb_c_K10 = unset_r8
+@@ -516,6 +520,9 @@
+     namelist /clubb_params_nl/ clubb_c1, clubb_c1b, clubb_c11, clubb_c11b, clubb_c14, clubb_mult_coef, clubb_gamma_coef, &
+                                clubb_c_K10, clubb_c_K10h, clubb_beta, clubb_C2rt, clubb_C2thl, &
+ 			       clubb_C2rtthl, clubb_C8, clubb_C8b, clubb_C7, clubb_C7b, clubb_Skw_denom_coef, &
++!++CMZ
++			       			       clubb_C10, clubb_C13, &
++!--CMZ
+                                clubb_C4, clubb_c_K9, clubb_nu9, clubb_C_wp2_splat, &
+                                clubb_lambda0_stability_coef, clubb_l_lscale_plume_centered, &
+                                clubb_l_use_ice_latent, clubb_do_liqsupersat, clubb_do_energyfix,&
+@@ -624,6 +631,12 @@
+     if (ierr /= 0) call endrun(sub//": FATAL: mpi_bcast: clubb_C2thl")
+     call mpi_bcast(clubb_C2rtthl,                1, mpi_real8,   mstrid, mpicom, ierr)
+     if (ierr /= 0) call endrun(sub//": FATAL: mpi_bcast: clubb_C2rtthl")
++!++CMZ
++    call mpi_bcast(clubb_C10,                1, mpi_real8,   mstrid, mpicom, ierr)
++    if (ierr /= 0) call endrun(sub//": FATAL: mpi_bcast: clubb_C10")
++    call mpi_bcast(clubb_C13,                1, mpi_real8,   mstrid, mpicom, ierr)
++    if (ierr /= 0) call endrun(sub//": FATAL: mpi_bcast: clubb_C13")
++!--CMZ
+     call mpi_bcast(clubb_C8,                     1, mpi_real8,   mstrid, mpicom, ierr)
+     if (ierr /= 0) call endrun(sub//": FATAL: mpi_bcast: clubb_C8")
+     call mpi_bcast(clubb_C8b,                     1, mpi_real8,   mstrid, mpicom, ierr)
+@@ -715,6 +728,10 @@
+   if(clubb_C2rt == unset_r8) call endrun(sub//": FATAL: clubb_C2rt is not set")
+   if(clubb_C2thl == unset_r8) call endrun(sub//": FATAL: clubb_C2thl is not set")
+   if(clubb_C2rtthl == unset_r8) call endrun(sub//": FATAL: clubb_C2rtthl is not set")
++!++CMZ
++  if(clubb_C10 == unset_r8) call endrun(sub//": FATAL: clubb_C10 is not set")
++  if(clubb_C13 == unset_r8) call endrun(sub//": FATAL: clubb_C13 is not set")
++!--CMZ
+   if(clubb_C4 == unset_r8) call endrun(sub//": FATAL: clubb_C4 is not set")
+   if(clubb_C8 == unset_r8) call endrun(sub//": FATAL: clubb_C8 is not set")
+   if(clubb_C8b == unset_r8) call endrun(sub//": FATAL: clubb_C8b is not set")
+@@ -814,6 +831,9 @@
+     use clubb_api_module, only: &
+          ilambda0_stability_coef, ic_K10, ic_K10h, iC2rtthl, iC7, iC7b, iC8, iC8b, iC11, iC11b, &
+          iC14, igamma_coef, imult_coef, ilmin_coef, iSkw_denom_coef, ibeta, iskw_max_mag, &
++         !++CMZ
++         iC10, iC13, &
++         !--CMZ
+          iC2rt, iC2thl, iC2rtthl, ic_K9, inu9, iC_wp2_splat
+ 
+     use time_manager,              only: is_first_step
+@@ -1010,6 +1030,10 @@
+     clubb_params(iC11) = clubb_c11
+     clubb_params(iC11b) = clubb_c11b
+     clubb_params(iC14) = clubb_c14
++!++CMZ
++    clubb_params(iC10) = clubb_C10
++    clubb_params(iC13) = clubb_C13
++!--CMZ
+     clubb_params(ic_K10) = clubb_c_K10
+     clubb_params(imult_coef) = clubb_mult_coef
+     clubb_params(iSkw_denom_coef) = clubb_Skw_denom_coef

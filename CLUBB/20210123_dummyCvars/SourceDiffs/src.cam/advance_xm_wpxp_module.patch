@@ -1,0 +1,75 @@
+--- /glade/u/home/zarzycki/work/cesm2_2_0//components/cam/src/physics/clubb//advance_xm_wpxp_module.F90	2020-10-19 15:40:52.659952957 -0600
++++ advance_xm_wpxp_module.F90	2021-01-23 19:31:41.624635338 -0700
+@@ -102,6 +102,12 @@
+         C7,  & 
+         C7b,  & 
+         C7c,  & 
++    !++CMZ
++    ! C10 and C13 are not used, so we'll leverage them as constants for splitting
++    ! C7 in the prog momentum time tendency equation (pressure term).
++        C10,  & 
++        C13,  & 
++    !--CMZ
+         c_K6,  & 
+         C6rt_Lscale0, &
+         C6thl_Lscale0, &
+@@ -333,7 +339,10 @@
+     ! -------------------- Local Variables --------------------
+ 
+     real( kind = core_rknd ), dimension(gr%nz) ::  & 
+-      C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc
++!++CMZ
++      !C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc
++      C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc, C7upwp, C13tmp
++!--CMZ
+ 
+     ! Eddy Diffusion for wpthlp and wprtp.
+     real( kind = core_rknd ), dimension(gr%nz) :: Kw6  ! wpxp eddy diff. [m^2/s]
+@@ -593,6 +602,9 @@
+                                           up2, vp2,                                         & ! In
+                                           low_lev_effect, high_lev_effect,                  & ! In
+                                           C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc,          & ! In
++                                          !++CMZ
++                                          C7upwp, C13tmp,                                   & ! In
++                                          !--CMZ
+                                           lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm,   & ! In
+                                           lhs_ta_wprtp,                                     & ! In
+                                           rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup,         & ! In
+@@ -2221,6 +2233,9 @@
+                                             up2, vp2, &
+                                             low_lev_effect, high_lev_effect, &
+                                             C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc, &
++                                            !++CMZ
++                                            C7upwp, C13tmp, &
++                                            !--CMZ
+                                             lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm, &
+                                             lhs_ta_wpxp, &
+                                             rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup, &
+@@ -2385,7 +2400,10 @@
+       high_lev_effect   ! Index of the highest level that has an effect.
+       
+     real( kind = core_rknd ), dimension(gr%nz), intent(in) ::  & 
+-      C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc
++!++CMZ
++      !C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc
++      C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc, C7upwp, C13tmp
++!--CMZ
+ 
+     integer, intent(in) :: &
+       nrhs         ! Number of RHS vectors
+@@ -2558,8 +2576,13 @@
+        endif ! .not. l_implemented
+ 
+        ! Add "extra term" and optional Coriolis term for <u'w'> and <v'w'>.
+-       upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
+-       vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
++       !++CMZ
++       !upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
++       !vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
++       print *,' C7upwp ',C7upwp
++       upwp_forcing = C7upwp * wp2 * ddzt( um )
++       vpwp_forcing = C7upwp * wp2 * ddzt( vm )
++       !--CMZ
+ 
+        if ( l_stats_samp ) then
+           call stat_update_var( iupwp_pr4, C7_Skw_fnc * wp2 * ddzt( um ), &

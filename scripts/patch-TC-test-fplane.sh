@@ -5,13 +5,13 @@ shopt -s expand_aliases
 ### Patches
 # to create a patch...
 if [ "1" -eq "0" ]; then
-  CESMROOT=~/work/cesm-dev/
-  filename="advance_clubb_core_module"
+  CESMROOT=~/work/cesm2_2_0/
+  filename="advance_xm_wpxp_module"
   SUBPATH="components/cam/src/physics/clubb/"
   CESMCOMPONENT="cam"
-  SOURCEMODDIR=~/ideal-mods/CLUBB/20200819_taudiags/SourceDiffs/src.${CESMCOMPONENT}/
+  SOURCEMODDIR=~/ideal-mods/CLUBB/20210123_dummyCvars/SourceDiffs/src.${CESMCOMPONENT}/
   mkdir -p ${SOURCEMODDIR}
-  diff -b -U 3 ${CESMROOT}/${SUBPATH}/${filename}.F90 ~/TC_PBL/RCE.QPC6.ne0np4tcfplane.ne15x8.exp294.001/SourceMods/src.${CESMCOMPONENT}/${filename}.F90 > ${SOURCEMODDIR}/${filename}.patch
+  diff -b -U 3 ${CESMROOT}/${SUBPATH}/${filename}.F90 ${filename}.F90 > ${SOURCEMODDIR}/${filename}.patch
 fi
 
 function patch_code {
@@ -29,10 +29,11 @@ function patch_code {
 DTIME=450.0
 RES="ne15x8"
 PHYS="QPC6"  # QPC5 or QPC6
-EXPID="exp292"
+EXPID="exp101"
 ENS="001"
-NLEV=56
+NLEV=32
 NDAYS=10
+
 ## CAM6 settings
 PREDICT_UPWP=true
 DIAG_LSCALE_FROM_TAU=true
@@ -40,12 +41,17 @@ INVRS_TAU_BKGND=4.0
 INVRS_TAU_SFC=0.3
 INVRS_TAU_SHEAR=0.018
 INVRS_TAU_N2=0.15
-CK10=9999.9
+CK10=0.5
+
+SPLIT_C7=true
+C7WPUP=0.45
+
 ## CAM5 settings
-CAM5_DO_MG2=true
+CAM5_DO_MG2=false
+
 ## General settings
-LY09=true             # Do LY09?
-CD_CAP_MS=31.0        # negative means no changes
+LY09=false             # Do LY09?
+CD_CAP_MS=-31.0        # negative means no changes
 
 if [[ $(hostname -s) = cheyenne* ]]; then
   IDEALDIR=/glade/u/home/zarzycki/ideal-mods/
@@ -53,7 +59,7 @@ if [[ $(hostname -s) = cheyenne* ]]; then
   WALLTIME="03:28:00"
   RUNQUEUE="premium"
   PROJID=UPSU0032
-  CESMROOT=/glade/u/home/zarzycki/work/cesm-dev/
+  CESMROOT=/glade/u/home/zarzycki/work/cesm2_2_0/
   GRIDSDIR=~/work/grids/
   INICDIR=~/work/initial/tc_testcase/
   CSMDATA=/glade/p/cesmdata/cseg/inputdata/
@@ -89,7 +95,6 @@ elif [[ $(hostname -s) = aci-* ]]; then
   EXTRASUBFLAGS='--batch-args "-N CESM"'
   USENODEBUILD=false
 fi
-
 
 CASENAME=RCE.${PHYS}.ne0np4tcfplane.${RES}.${EXPID}.${ENS}
 
@@ -127,8 +132,7 @@ if [ "${LY09}" = true ] ; then
   if (( $(echo "$CD_CAP_MS > 0" | bc -l) )); then
     echo "Adjusting Cd"
     cd ./SourceMods/src.share/
-      sed -i -e 's/33.0000/'${CD_CAP_MS}'/g' shr_flux_mod.F90
-    cd ${CASEDIR}/${CASENAME}
+    sed -i -e 's/33.0000/'${CD_CAP_MS}'/g' shr_flux_mod.F90
   fi
 fi
 
@@ -139,19 +143,31 @@ if [ ${PHYS} == 'QPC6' ] ; then
   patch_code ${PATCHDIR} "stats_variables" "components/cam/src/physics/clubb/" "cam"
   patch_code ${PATCHDIR} "stats_zm_module" "components/cam/src/physics/clubb/" "cam"
   #cp /glade/u/home/zarzycki/ideal-mods/CLUBB/tau-sculpt/vince-modif/*F90 ./SourceMods/src.cam/
-  cd ./SourceMods/src.cam/
-  
-  if [ "${DIAG_LSCALE_FROM_TAU}" = true ] ; then
-    # Copy parameters_tunable and sed in updated tau values
+
+  if [ "${DIAG_LSCALE_FROM_TAU}" = true ] || [ "${SPLIT_C7}" = true ] ; then
+    cd ./SourceMods/src.cam/
     cp ${CESMROOT}/components/cam/src/physics/clubb/parameters_tunable.F90 .
-    sed -i -e 's/^\s*C_invrs_tau_bkgnd\s*=\s*[0-9].*/    C_invrs_tau_bkgnd = '${INVRS_TAU_BKGND}'_core_rknd, \& !/g' parameters_tunable.F90
-    sed -i -e 's/^\s* C_invrs_tau_sfc\s*=\s*[0-9].*/    C_invrs_tau_sfc = '${INVRS_TAU_SFC}'_core_rknd, \& !/g' parameters_tunable.F90
-    sed -i -e 's/^\s* C_invrs_tau_shear\s*=\s*[0-9].*/    C_invrs_tau_shear = '${INVRS_TAU_SHEAR}'_core_rknd, \& !/g' parameters_tunable.F90
-    sed -i -e 's/^\s* C_invrs_tau_N2\s*=\s*[0-9].*/    C_invrs_tau_N2 = '${INVRS_TAU_N2}'_core_rknd, \& !/g' parameters_tunable.F90
-    CK10=9999.9
+    if [ "${DIAG_LSCALE_FROM_TAU}" = true ] ; then
+      # Copy parameters_tunable and sed in updated tau values
+      sed -i -e 's/^\s*C_invrs_tau_bkgnd\s*=\s*[0-9].*/    C_invrs_tau_bkgnd = '${INVRS_TAU_BKGND}'_core_rknd, \& !/g' parameters_tunable.F90
+      sed -i -e 's/^\s* C_invrs_tau_sfc\s*=\s*[0-9].*/    C_invrs_tau_sfc = '${INVRS_TAU_SFC}'_core_rknd, \& !/g' parameters_tunable.F90
+      sed -i -e 's/^\s* C_invrs_tau_shear\s*=\s*[0-9].*/    C_invrs_tau_shear = '${INVRS_TAU_SHEAR}'_core_rknd, \& !/g' parameters_tunable.F90
+      sed -i -e 's/^\s* C_invrs_tau_N2\s*=\s*[0-9].*/    C_invrs_tau_N2 = '${INVRS_TAU_N2}'_core_rknd, \& !/g' parameters_tunable.F90
+      CK10=9999.9
+    fi
+    if [ "${SPLIT_C7}" = true ] ; then
+      echo "Splitting C7 in d(upwp)/dt"
+      sed -i -e 's/^\s*C10\s*=\s*[0-9].*/    C10 = '${C7WPUP}'_core_rknd, \& !/g' parameters_tunable.F90
+      sed -i -e 's/^\s*C13\s*=\s*[0-9].*/    C13 = 9999.000_core_rknd, \& !/g' parameters_tunable.F90
+      cd ${CASEDIR}/${CASENAME}  # return to top level
+      PATCHDIR=${IDEALDIR}/CLUBB/20210123_dummyCvars/SourceDiffs/
+      patch_code ${PATCHDIR} "advance_xm_wpxp_module" "components/cam/src/physics/clubb/" "cam"
+    fi
   fi
-  cd ${CASEDIR}/${CASENAME}
+  
 fi
+
+cd ${CASEDIR}/${CASENAME}
 
 ./xmlchange CPL_ALBAV=TRUE
 
@@ -189,7 +205,7 @@ elif [ ${PHYS} == 'QPC6' ]; then
   # Change to Kevin's RCE use case
   ./xmlchange CAM_NML_USE_CASE="aquaplanet_rce_cam6"
    # Add CAM6 specific output vars
-  EXTRAVARS="'Lscale','em','Kh_zm','invrs_tau_bkgnd','invrs_tau_sfc','invrs_tau_shear','bv_freq_sqd','Richardson_num','tau_zm'"
+  EXTRAVARS="'Lscale','em','Kh_zt','Kh_zm','invrs_tau_bkgnd','invrs_tau_sfc','invrs_tau_shear','bv_freq_sqd','Richardson_num','tau_zm','upwp','vpwp'"
   DIAGOUT=","$EXTRAVARS
 else
   DIAGOUT=""
