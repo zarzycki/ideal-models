@@ -1,5 +1,5 @@
 --- /glade/u/home/zarzycki/work/cesm2_2_0//components/cam/src/physics/clubb//advance_xm_wpxp_module.F90	2020-10-19 15:40:52.659952957 -0600
-+++ advance_xm_wpxp_module.F90	2021-01-23 19:31:41.624635338 -0700
++++ advance_xm_wpxp_module.F90	2021-01-23 20:21:01.342414089 -0700
 @@ -102,6 +102,12 @@
          C7,  & 
          C7b,  & 
@@ -25,7 +25,19 @@
  
      ! Eddy Diffusion for wpthlp and wprtp.
      real( kind = core_rknd ), dimension(gr%nz) :: Kw6  ! wpxp eddy diff. [m^2/s]
-@@ -593,6 +602,9 @@
+@@ -478,6 +487,11 @@
+                                      C7_Lscale0, wpxp_L_thresh, Lscale )
+     end if ! l_use_C7_Richardson
+ 
++    !++ CMZ
++    C7upwp(1:gr%nz) = C10
++    C13tmp(1:gr%nz) = C13
++    !-- CMZ
++
+     ! Damp C6 as a function of Lscale in stably stratified regions
+     C6rt_Skw_fnc = damp_coefficient( C6rt, C6rt_Skw_fnc, &
+                                      C6rt_Lscale0, wpxp_L_thresh, Lscale )
+@@ -593,6 +607,9 @@
                                            up2, vp2,                                         & ! In
                                            low_lev_effect, high_lev_effect,                  & ! In
                                            C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc,          & ! In
@@ -35,7 +47,7 @@
                                            lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm,   & ! In
                                            lhs_ta_wprtp,                                     & ! In
                                            rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup,         & ! In
-@@ -2221,6 +2233,9 @@
+@@ -2221,6 +2238,9 @@
                                              up2, vp2, &
                                              low_lev_effect, high_lev_effect, &
                                              C6rt_Skw_fnc, C6thl_Skw_fnc, C7_Skw_fnc, &
@@ -45,7 +57,7 @@
                                              lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm, &
                                              lhs_ta_wpxp, &
                                              rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup, &
-@@ -2385,7 +2400,10 @@
+@@ -2385,7 +2405,10 @@
        high_lev_effect   ! Index of the highest level that has an effect.
        
      real( kind = core_rknd ), dimension(gr%nz), intent(in) ::  & 
@@ -57,7 +69,7 @@
  
      integer, intent(in) :: &
        nrhs         ! Number of RHS vectors
-@@ -2558,8 +2576,13 @@
+@@ -2558,8 +2581,13 @@
         endif ! .not. l_implemented
  
         ! Add "extra term" and optional Coriolis term for <u'w'> and <v'w'>.
@@ -66,7 +78,7 @@
 +       !++CMZ
 +       !upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
 +       !vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
-+       print *,' C7upwp ',C7upwp
++       !print *,' C7upwp ',C7upwp
 +       upwp_forcing = C7upwp * wp2 * ddzt( um )
 +       vpwp_forcing = C7upwp * wp2 * ddzt( vm )
 +       !--CMZ
