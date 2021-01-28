@@ -1,5 +1,5 @@
 --- /glade/u/home/zarzycki/work/cesm2_2_0//components/cam/src/physics/clubb//advance_xm_wpxp_module.F90	2020-10-19 15:40:52.659952957 -0600
-+++ advance_xm_wpxp_module.F90	2021-01-23 20:21:01.342414089 -0700
++++ advance_xm_wpxp_module.F90	2021-01-28 14:58:45.289068501 -0700
 @@ -102,6 +102,12 @@
          C7,  & 
          C7b,  & 
@@ -57,7 +57,18 @@
                                              lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm, &
                                              lhs_ta_wpxp, &
                                              rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup, &
-@@ -2385,7 +2405,10 @@
+@@ -2274,6 +2294,10 @@
+       ivprcp,  &
+       l_stats_samp
+         
++    !++CMZ
++    use spmd_utils,      only: masterproc
++    !--CMZ
++        
+     use parameters_model, only: & 
+       sclr_dim, &  ! Variable(s)
+       sclr_tol
+@@ -2385,7 +2409,10 @@
        high_lev_effect   ! Index of the highest level that has an effect.
        
      real( kind = core_rknd ), dimension(gr%nz), intent(in) ::  & 
@@ -69,19 +80,43 @@
  
      integer, intent(in) :: &
        nrhs         ! Number of RHS vectors
-@@ -2558,8 +2581,13 @@
+@@ -2558,14 +2585,39 @@
         endif ! .not. l_implemented
  
         ! Add "extra term" and optional Coriolis term for <u'w'> and <v'w'>.
--       upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
--       vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
 +       !++CMZ
 +       !upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
 +       !vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
-+       !print *,' C7upwp ',C7upwp
-+       upwp_forcing = C7upwp * wp2 * ddzt( um )
-+       vpwp_forcing = C7upwp * wp2 * ddzt( vm )
++       if (masterproc) then
++         print *,'CMZ: C7upwp ',C7upwp(1),'      C7_Skw_fnc ',C7_Skw_fnc(1)
++       end if
++       if ( C7upwp(1) < 99.0_core_rknd ) then
++         upwp_forcing = C7upwp * wp2 * ddzt( um )
++         vpwp_forcing = C7upwp * wp2 * ddzt( vm )
++       else
+        upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
+        vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
++       endif
 +       !--CMZ
  
         if ( l_stats_samp ) then
++       !++CMZ
++         if ( C7upwp(1) < 99.0_core_rknd ) then
++           call stat_update_var( iupwp_pr4, C7upwp * wp2 * ddzt( um ), &
++                                stats_zm )
++           call stat_update_var( ivpwp_pr4, C7upwp * wp2 * ddzt( vm ), &
++                                stats_zm )
++         else
            call stat_update_var( iupwp_pr4, C7_Skw_fnc * wp2 * ddzt( um ), &
+                                 stats_zm )
+           call stat_update_var( ivpwp_pr4, C7_Skw_fnc * wp2 * ddzt( vm ), &
+                                 stats_zm )
++         endif
++          !call stat_update_var( iupwp_pr4, C7_Skw_fnc * wp2 * ddzt( um ), &
++          !                      stats_zm )
++          !call stat_update_var( ivpwp_pr4, C7_Skw_fnc * wp2 * ddzt( vm ), &
++          !                      stats_zm )
++        !--CMZ
+        endif ! l_stats_samp
+ 
+        call diagnose_upxp( upwp, thlm, wpthlp, um, &               ! Intent(in)
