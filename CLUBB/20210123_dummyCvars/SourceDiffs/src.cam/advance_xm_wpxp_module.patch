@@ -1,5 +1,5 @@
 --- /glade/u/home/zarzycki/work/cesm2_2_0//components/cam/src/physics/clubb//advance_xm_wpxp_module.F90	2020-10-19 15:40:52.659952957 -0600
-+++ advance_xm_wpxp_module.F90	2021-01-28 14:58:45.289068501 -0700
++++ advance_xm_wpxp_module.F90	2021-01-29 08:18:14.271947568 -0700
 @@ -102,6 +102,12 @@
          C7,  & 
          C7b,  & 
@@ -57,18 +57,19 @@
                                              lhs_diff_zm, lhs_diff_zt, lhs_ma_zt, lhs_ma_zm, &
                                              lhs_ta_wpxp, &
                                              rhs_ta_wprtp, rhs_ta_wpthlp, rhs_ta_wpup, &
-@@ -2274,6 +2294,10 @@
+@@ -2274,6 +2294,11 @@
        ivprcp,  &
        l_stats_samp
          
 +    !++CMZ
 +    use spmd_utils,      only: masterproc
++    use time_manager,              only: is_first_step
 +    !--CMZ
 +        
      use parameters_model, only: & 
        sclr_dim, &  ! Variable(s)
        sclr_tol
-@@ -2385,7 +2409,10 @@
+@@ -2385,7 +2410,10 @@
        high_lev_effect   ! Index of the highest level that has an effect.
        
      real( kind = core_rknd ), dimension(gr%nz), intent(in) ::  & 
@@ -80,14 +81,14 @@
  
      integer, intent(in) :: &
        nrhs         ! Number of RHS vectors
-@@ -2558,14 +2585,39 @@
+@@ -2558,14 +2586,39 @@
         endif ! .not. l_implemented
  
         ! Add "extra term" and optional Coriolis term for <u'w'> and <v'w'>.
 +       !++CMZ
 +       !upwp_forcing = C7_Skw_fnc * wp2 * ddzt( um )
 +       !vpwp_forcing = C7_Skw_fnc * wp2 * ddzt( vm )
-+       if (masterproc) then
++       if (masterproc .and. is_first_step()) then
 +         print *,'CMZ: C7upwp ',C7upwp(1),'      C7_Skw_fnc ',C7_Skw_fnc(1)
 +       end if
 +       if ( C7upwp(1) < 99.0_core_rknd ) then
