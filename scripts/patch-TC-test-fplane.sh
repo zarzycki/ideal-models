@@ -29,7 +29,7 @@ function patch_code {
 DTIME=450.0
 RES="ne15x8"
 PHYS="QPC6"  # QPC5 or QPC6
-EXPID="exp102"
+EXPID="exp109"
 ENS="001"
 NLEV=56
 NDAYS=10
@@ -44,7 +44,7 @@ INVRS_TAU_N2=0.15
 CK10=0.5
 
 SPLIT_C7=true
-C7WPUP=0.45
+C7UPWP=0.45
 
 ## CAM5 settings
 CAM5_DO_MG2=false
@@ -186,7 +186,7 @@ if [ ${PHYS} == 'QPC6' ] ; then
     fi
     if [ "${SPLIT_C7}" = true ] ; then
       echo "Splitting C7 in d(upwp)/dt"
-      sed -i -e 's/^\s*C10\s*=\s*[0-9].*/    C10 = '${C7WPUP}'_core_rknd, \& !/g' parameters_tunable.F90
+      sed -i -e 's/^\s*C10\s*=\s*[0-9].*/    C10 = '${C7UPWP}'_core_rknd, \& !/g' parameters_tunable.F90
       sed -i -e 's/^\s*C13\s*=\s*[0-9].*/    C13 = 9999.000_core_rknd, \& !/g' parameters_tunable.F90
       cd ${CASEDIR}/${CASENAME}  # return to top level
       PATCHDIR=${IDEALDIR}/CLUBB/20210123_dummyCvars/SourceDiffs/
