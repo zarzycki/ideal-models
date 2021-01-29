@@ -29,9 +29,9 @@ function patch_code {
 DTIME=450.0
 RES="ne15x8"
 PHYS="QPC6"  # QPC5 or QPC6
-EXPID="exp101"
+EXPID="exp102"
 ENS="001"
-NLEV=32
+NLEV=56
 NDAYS=10
 
 ## CAM6 settings
@@ -90,9 +90,38 @@ elif [[ $(hostname -s) = aci-* ]]; then
   CSMDATA=/gpfs/group/dml129/default/sw/cesm/cesm-inputdata/
   RCEINPUTDATA=NULL
   CASEDIR=~/TC_PBL/
-  MACHNAME="ACI"
+  MACHNAME="ACI-RHEL6"
   EXTRASETUPFLAGS="--compiler intel"
-  EXTRASUBFLAGS='--batch-args "-N CESM"'
+  EXTRASUBFLAGS=""
+  BATCHARGS="-N CESM"
+  USENODEBUILD=false
+elif [[ $(hostname -s) = comp-sc-* ]]; then
+  echo "using ICS RHEL7 nodes"
+  source /usr/share/lmod/lmod/init/bash
+  module purge
+  module load python/2.7.5
+  module use /gpfs/group/RISE/sw7/modules
+  module load gcc/8.3.1
+  module load lapack/3.9.0-gcc
+  module load openmpi/3.1.6
+  module load netcdf/4.4.1
+  module load netcdf-fortran/4.4.4
+  module list
+  IDEALDIR=/storage/home/cmz5202/ideal-models/
+  NUMNODES=15
+  WALLTIME="03:58:00"
+  RUNQUEUE="batch"
+  PROJID="cmz5202_a_g_sc_default"
+  CESMROOT=/storage/home/cmz5202/cesm-dev/
+  GRIDSDIR=/storage/work/cmz5202/grids/
+  INICDIR=/storage/work/${LOGNAME}/inic/
+  CSMDATA=/gpfs/group/dml129/default/sw/cesm/cesm-inputdata/
+  RCEINPUTDATA=NULL
+  CASEDIR=~/TC_PBL/
+  MACHNAME="ACI"
+  EXTRASETUPFLAGS="--compiler gnu"
+  EXTRASUBFLAGS=""
+  BATCHARGS="-l feature=rhel7"
   USENODEBUILD=false
 fi
 
@@ -287,6 +316,10 @@ echo "Done with config!"
 
 echo "Done with setup!"
 
+if [[ $(hostname -s) = comp-sc-* ]]; then
+  sed -i '1s?^?SLIBS := $(SLIBS) -L$(NETCDF)/lib -llapack -lblas -lnetcdff -lnetcdf\n?' Macros.make
+fi
+
 if [ "${USENODEBUILD}" = true ] ; then
   cesm.build --skip-provenance-check
 else
@@ -294,4 +327,4 @@ else
 fi
 
 echo "Done with build!"
-./case.submit --batch-args "-N TC.${EXPID}.${ENS}"
+./case.submit ${EXTRASUBFLAGS} --batch-args "${BATCHARGS}"
