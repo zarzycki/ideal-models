@@ -68,6 +68,7 @@ if [[ $(hostname -s) = cheyenne* ]]; then
   MACHNAME="cheyenne"
   EXTRASETUPFLAGS=""
   EXTRASUBFLAGS=""
+  BATCHARGS=""
   USENODEBUILD=true
 elif [[ $(hostname -s) = aci-* ]]; then
   source /usr/share/lmod/lmod/init/bash
